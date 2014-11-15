@@ -1,5 +1,5 @@
-
 #include "pebble.h"
+#include "strap/strap.h"
 
 static Window *window;
 static MenuLayer *menu_layer;
@@ -20,6 +20,24 @@ static char *sunday_events[6];
 static char *sunday_times[6];
 static int sunday_hours[6] = {9, 11, 12, 14, 14, 15};
 
+static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+  strap_log_event("/select");
+}
+
+static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
+  strap_log_event("/up");
+}
+
+static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
+  strap_log_event("/down");
+}
+
+static void click_config_provider(void *context) {
+  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
+  window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
+  window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
+}
+
 static void create_data () {
     // Thursday
     thursday_events[0] = "Start of the Retreat";
@@ -34,7 +52,7 @@ static void create_data () {
     thursday_events[9] = "Lightning talks";
     thursday_events[10] = "Raffle 3 Pebble Steels";
     thursday_events[11] = "Meetup Ends";
-    
+
     thursday_times[0] = "9:30";
     thursday_times[1] = "10:30";
     thursday_times[2] = "11:30";
@@ -63,7 +81,7 @@ static void create_data () {
     friday_events[11] = "Self-Guided Tours of the CHM";
     friday_events[12] = "Dinner at the CHM";
     friday_events[13] = "Leave the CHM";
-    
+
     friday_times[0] = "9:30";
     friday_times[1] = "10:30";
     friday_times[2] = "11:00";
@@ -78,7 +96,7 @@ static void create_data () {
     friday_times[11] = "18:00";
     friday_times[12] = "19:00";
     friday_times[13] = "22:00";
-    
+
     // Saturday
     saturday_events[0] = "Start of Day 3";
     saturday_events[1] = "Code Reviews in the Workshop Room";
@@ -89,7 +107,7 @@ static void create_data () {
     saturday_events[6] = "Dinner";
     saturday_events[7] = "Ice Cream Sandwhich Bar by Cream";
     saturday_events[8] = "End of Day 3";
-    
+
     saturday_times[0] = "9:30";
     saturday_times[1] = "10:00";
     saturday_times[2] = "10:30";
@@ -99,7 +117,7 @@ static void create_data () {
     saturday_times[6] = "18:00";
     saturday_times[7] = "20:00";
     saturday_times[8] = "22:00";
-    
+
     // Sunday
     sunday_events[0] = "Start of Day 4";
     sunday_events[1] = "Brunch";
@@ -107,7 +125,7 @@ static void create_data () {
     sunday_events[3] = "Awards Ceremony";
     sunday_events[4] = "Final Words";
     sunday_events[5] = "Official End of Retreat";
-    
+
     sunday_times[0] = "9:30";
     sunday_times[1] = "11:30";
     sunday_times[2] = "12:30";
@@ -162,9 +180,9 @@ static void menu_draw_header_callback(GContext* ctx, const Layer *cell_layer, ui
 }
 
 static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
-    
+
     graphics_context_set_text_color(ctx, GColorBlack);
-  
+
     if (cell_index->section == 0) {
         graphics_draw_text(ctx, "Y Combinator", fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(5, -4, 139, 98), GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
         graphics_draw_text(ctx, "320 Pioneer Way\nMountain View\nCA 94041", fonts_get_system_font(FONT_KEY_GOTHIC_18), GRect(5, 20, 139, 78), GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
@@ -189,7 +207,7 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 }
 
 void window_load(Window *window) {
-  
+
     create_data();
 
     Layer *window_layer = window_get_root_layer(window);
@@ -209,13 +227,13 @@ void window_load(Window *window) {
     menu_layer_set_click_config_onto_window(menu_layer, window);
 
     layer_add_child(window_layer, menu_layer_get_layer(menu_layer));
-    
+
     time_t now = time(NULL);
     struct tm *tick_time = localtime(&now);
-    
+
     int hour = tick_time->tm_hour;
     int day = tick_time->tm_mday;
-    
+
     if (day == 2 || day == 3 || day == 4 || day == 5) {
         MenuIndex selected;
         selected.section = day - 1;
@@ -261,7 +279,7 @@ void window_load(Window *window) {
                 }
             }
         }
-        
+
         menu_layer_set_selected_index(menu_layer, selected, MenuRowAlignCenter, false);
     }
 }
@@ -272,11 +290,16 @@ void window_unload(Window *window) {
 
 int main(void) {
     window = window_create();
+    window_set_click_config_provider(window, click_config_provider);
     window_set_window_handlers(window, (WindowHandlers) {
         .load = window_load,
         .unload = window_unload,
     });
     window_stack_push(window, true);
+    // initialize strap
+    strap_init();
     app_event_loop();
+    // unload strap
+    strap_deinit();
     window_destroy(window);
 }
