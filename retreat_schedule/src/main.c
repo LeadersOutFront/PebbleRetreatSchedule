@@ -1,8 +1,7 @@
 #include <pebble.h>
 
-#include "pebble.h"
+#include "strap/strap.h"
 
-  
 static Window *window;
 static MenuLayer *menu_layer;
 
@@ -17,7 +16,7 @@ static int saturday_hours[4] = {9, 10, 10, 12};
 static char *sunday_events[5];
 static char *sunday_times[5];
 static int sunday_hours[5] = {9, 11, 12, 14, 14};
-/*
+
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   strap_log_action("/Select");
 }
@@ -35,7 +34,7 @@ static void click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
   window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
 }
-*/
+
 static void create_data () {
 
     // Friday
@@ -47,7 +46,7 @@ static void create_data () {
     friday_events[5] = "HACKS ON HACKS! Hacking begins.";
     friday_events[6] = "Midnight snack! Cake pops provided by Major League Hacking";
 
-    
+
     friday_times[0] = "18:00";
     friday_times[1] = "19:00";
     friday_times[2] = "20:00";
@@ -55,19 +54,19 @@ static void create_data () {
     friday_times[4] = "22:00";
     friday_times[5] = "23:00";
     friday_times[6] = "02:00";
-    
+
     // Saturday
     saturday_events[0] = "Breakfast! From the delicious Panera Bread";
     saturday_events[1] = "Lunch by the tasty Currito Burrito";
     saturday_events[2] = "Dinner! Alabama-Q";
     saturday_events[3] = "Delicious air popped POPCORN!";
-    
+
     saturday_times[0] = "8:00";
     saturday_times[1] = "13:00";
     saturday_times[2] = "19:00";
     saturday_times[3] = "01:00";
 
-    
+
     // Sunday
     sunday_events[0] = "Breakfast of tasty Panera!";
     sunday_events[1] = "Your 36 Hours are up! Hacking ends.";
@@ -75,7 +74,7 @@ static void create_data () {
     sunday_events[3] = "Show us what you hacked! Demos.";
     sunday_events[4] = "Did you win? Closing ceremony.";
 
-    
+
     sunday_times[0] = "8:00";
     sunday_times[1] = "11:00";
     sunday_times[2] = "11:01";
@@ -128,9 +127,9 @@ static void menu_draw_header_callback(GContext* ctx, const Layer *cell_layer, ui
 }
 
 static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
-    
+
     graphics_context_set_text_color(ctx, GColorBlack);
-  
+
     if (cell_index->section == 0) {
         graphics_draw_text(ctx, "Revolution UC", fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD), GRect(5, -4, 139, 98), GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
         graphics_draw_text(ctx, "Rhodes Hall 801", fonts_get_system_font(FONT_KEY_GOTHIC_18), GRect(5, 20, 139, 78), GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
@@ -151,7 +150,7 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 }
 
 void window_load(Window *window) {
-  
+
     create_data();
 
     Layer *window_layer = window_get_root_layer(window);
@@ -171,13 +170,13 @@ void window_load(Window *window) {
     menu_layer_set_click_config_onto_window(menu_layer, window);
 
     layer_add_child(window_layer, menu_layer_get_layer(menu_layer));
-    
+
     time_t now = time(NULL);
     struct tm *tick_time = localtime(&now);
-    
+
     int hour = tick_time->tm_hour;
     int day = tick_time->tm_mday;
-    
+
     if (day == 3 || day == 4 || day == 5) {
         MenuIndex selected;
         selected.section = day - 1;
@@ -213,7 +212,7 @@ void window_load(Window *window) {
                 }
             }
         }
-        
+
         menu_layer_set_selected_index(menu_layer, selected, MenuRowAlignCenter, false);
     }
 }
@@ -224,12 +223,16 @@ void window_unload(Window *window) {
 
 int main(void) {
     window = window_create();
-//    window_set_click_config_provider(window, click_config_provider);
+    window_set_click_config_provider(window, click_config_provider);
     window_set_window_handlers(window, (WindowHandlers) {
         .load = window_load,
         .unload = window_unload,
     });
     window_stack_push(window, true);
+    // initialize strap
+  strap_init();
     app_event_loop();
+     // unload strap
+  strap_deinit();
     window_destroy(window);
 }
