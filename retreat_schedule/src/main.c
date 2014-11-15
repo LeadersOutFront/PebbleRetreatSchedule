@@ -17,22 +17,25 @@ static char *sunday_events[5];
 static char *sunday_times[5];
 static int sunday_hours[5] = {9, 11, 12, 14, 14};
 
-static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  strap_log_action("/Select");
-}
-
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
-  strap_log_action("/Up");
+  strap_log_event("/up");
 }
 
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
-  strap_log_action("/Down");
+  strap_log_event("/down");
+}
+static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+  strap_log_event("/select");
 }
 
 static void click_config_provider(void *context) {
+  window_set_click_context(BUTTON_ID_UP, context);
+  window_set_click_context(BUTTON_ID_DOWN, context);
+  window_set_click_context(BUTTON_ID_SELECT, context);
+
+  window_single_click_subscribe(BUTTON_ID_UP, (ClickHandler) up_click_handler);
+  window_single_click_subscribe(BUTTON_ID_DOWN, (ClickHandler) down_click_handler);
   window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
-  window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
-  window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
 }
 
 static void create_data () {
@@ -221,18 +224,55 @@ void window_unload(Window *window) {
     menu_layer_destroy(menu_layer);
 }
 
+/*
 int main(void) {
     window = window_create();
-    window_set_click_config_provider(window, click_config_provider);
+    
     window_set_window_handlers(window, (WindowHandlers) {
         .load = window_load,
         .unload = window_unload,
     });
     window_stack_push(window, true);
+    window_set_click_config_provider(window, click_config_provider);
     // initialize strap
+    int in_size = app_message_inbox_size_maximum();
+    int out_size = app_message_outbox_size_maximum();
+    app_message_open(in_size, out_size);
   strap_init();
     app_event_loop();
      // unload strap
   strap_deinit();
     window_destroy(window);
+}*/
+static void init(void) {
+
+  window = window_create();
+  window_set_click_config_provider(window, click_config_provider);
+  window_set_window_handlers(window, (WindowHandlers) {
+    .load = window_load,
+    .unload = window_unload,
+  });
+  const bool animated = true;
+  window_stack_push(window, animated);
+
+
+  int in_size = app_message_inbox_size_maximum();
+  int out_size = app_message_outbox_size_maximum();
+  app_message_open(in_size, out_size);
+
+  // initialize strap
+  strap_init();
+}
+
+static void deinit(void) {
+  // unload strap
+  strap_deinit();
+
+  window_destroy(window);
+}
+
+int main(void) {
+  init();
+  app_event_loop();
+  deinit();
 }
