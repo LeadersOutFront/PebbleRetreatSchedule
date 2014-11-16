@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "optout.h"
 #include "strap.h"
 #include "accl.h"
 
@@ -14,12 +15,10 @@
 #define T_DID_VIBRATE 5 // string T/F
 #define T_ACTIVITY 2000
 #define T_LOG 3000
-#define STRAP_CRASH_WATCHER 49777
 
 #define NUM_SAMPLES 10
 static int report_accl = 0;
 static char cur_activity[15];
-
 
 #define LOG_ROWS 30
 #define LOG_COLS 50
@@ -38,6 +37,7 @@ static void app_timer_battery(void*);
 static void appendLog(char*);
 static void send_next_log(void*);
 static bool is_log_available();
+
 
 #ifdef DEBUG
 static char* translate_error(AppMessageResult);
@@ -154,14 +154,6 @@ void strap_init() {
         app_message_register_outbox_sent(strap_out_sent_handler);
         app_message_register_outbox_failed(strap_out_failed_handler);
 
-        // detect if app crashed last time
-        if (persist_read_bool(STRAP_CRASH_WATCHER)) {
-            strap_log_action("STRAP_CRASH");
-        }
-
-        // set persistent boolean that will be removed when app is deinited
-        // we will check for existance on init, and if it is true
-        persist_write_bool(STRAP_CRASH_WATCHER,true);
 
         // start sending accl data in 30 seconds
         #ifndef DISABLE_ACCL
@@ -177,7 +169,6 @@ void strap_init() {
 
 void strap_deinit() {
     if (!persist_read_bool(STRAP_OPT_OUT)) {
-        persist_delete(STRAP_CRASH_WATCHER);
         strap_log_action("STRAP_FINISH");
         accl_deinit();
     }

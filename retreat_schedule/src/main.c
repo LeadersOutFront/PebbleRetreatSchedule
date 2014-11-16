@@ -19,13 +19,16 @@ static int sunday_hours[5] = {9, 11, 12, 14, 14};
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
   strap_log_event("/up");
+  app_log(APP_LOG_LEVEL_INFO, "log", 0, "up clicked");
 }
 
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
   strap_log_event("/down");
+    app_log(APP_LOG_LEVEL_INFO, "log", 0, "down clicked");
 }
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   strap_log_event("/select");
+    app_log(APP_LOG_LEVEL_INFO, "log", 0, "select clicked");
 }
 
 static void click_config_provider(void *context) {
@@ -170,7 +173,7 @@ void window_load(Window *window) {
         .get_cell_height = menu_layer_get_cell_height_callback,
     });
 
-    menu_layer_set_click_config_onto_window(menu_layer, window);
+    //menu_layer_set_click_config_onto_window(menu_layer, window);
 
     layer_add_child(window_layer, menu_layer_get_layer(menu_layer));
 
@@ -224,30 +227,13 @@ void window_unload(Window *window) {
     menu_layer_destroy(menu_layer);
 }
 
-/*
-int main(void) {
-    window = window_create();
-    
-    window_set_window_handlers(window, (WindowHandlers) {
-        .load = window_load,
-        .unload = window_unload,
-    });
-    window_stack_push(window, true);
-    window_set_click_config_provider(window, click_config_provider);
-    // initialize strap
-    int in_size = app_message_inbox_size_maximum();
-    int out_size = app_message_outbox_size_maximum();
-    app_message_open(in_size, out_size);
-  strap_init();
-    app_event_loop();
-     // unload strap
-  strap_deinit();
-    window_destroy(window);
-}*/
 static void init(void) {
 
   window = window_create();
+  
   window_set_click_config_provider(window, click_config_provider);
+
+
   window_set_window_handlers(window, (WindowHandlers) {
     .load = window_load,
     .unload = window_unload,
