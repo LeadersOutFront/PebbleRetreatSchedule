@@ -7,14 +7,12 @@
     "longName": "Revolution UC Schedule",
     "projectType": "native",
     "resources": {
-        "media": [
-            
-        ]
+        "media": []
     },
     "shortName": "Retreat Schedule",
-    "uuid": "4ab3a5b9-08c9-4bba-8b8b-9271c3fb6259",
+    "uuid": "13d3e204-5918-4def-a0ca-6bb698b91191",
     "versionCode": 2,
-    "versionLabel": "2",
+    "versionLabel": "2.1",
     "watchapp": {
         "watchface": false
     }
