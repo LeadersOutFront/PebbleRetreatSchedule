@@ -16,13 +16,16 @@ static int saturday_hours[4] = {9, 10, 10, 12};
 static char *sunday_events[5];
 static char *sunday_times[5];
 static int sunday_hours[5] = {9, 11, 12, 14, 14};
+MenuLayer* menu_global = NULL;
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
+  menu_layer_set_selected_next(menu_global, true, MenuRowAlignCenter, true);
   strap_log_event("/up");
   app_log(APP_LOG_LEVEL_INFO, "log", 0, "up clicked");
 }
 
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
+  menu_layer_set_selected_next(menu_global, false, MenuRowAlignCenter, true);
   strap_log_event("/down");
     app_log(APP_LOG_LEVEL_INFO, "log", 0, "down clicked");
 }
@@ -163,6 +166,7 @@ void window_load(Window *window) {
     GRect bounds = layer_get_frame(window_layer);
 
     menu_layer = menu_layer_create(bounds);
+    menu_global = menu_layer;
 
     menu_layer_set_callbacks(menu_layer, NULL, (MenuLayerCallbacks){
         .get_num_sections = menu_get_num_sections_callback,
